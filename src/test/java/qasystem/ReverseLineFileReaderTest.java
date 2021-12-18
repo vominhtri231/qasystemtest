@@ -18,14 +18,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.IntStream;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static java.util.stream.Collectors.toList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-class ReverseLineReaderTest {
+class ReverseLineFileReaderTest {
 
     @Test
     public void testReadNormalFile() throws IOException {
@@ -36,27 +37,27 @@ class ReverseLineReaderTest {
                 "Run around",
                 "Desert you"
         ));
-        try (ReverseLineReader reverseLineReader = new ReverseLineReader(testFile)) {
-            Assertions.assertEquals(reverseLineReader.readLine(), "Desert you");
-            Assertions.assertEquals(reverseLineReader.readLine(), "Run around");
-            Assertions.assertEquals(reverseLineReader.readLine(), "Let you down");
-            Assertions.assertEquals(reverseLineReader.readLine(), "Give you up");
-            Assertions.assertNull(reverseLineReader.readLine());
+        try (ReverseLineFileReader reverseLineFileReader = new ReverseLineFileReader(testFile)) {
+            assertEquals(reverseLineFileReader.readLine(), "Desert you");
+            assertEquals(reverseLineFileReader.readLine(), "Run around");
+            assertEquals(reverseLineFileReader.readLine(), "Let you down");
+            assertEquals(reverseLineFileReader.readLine(), "Give you up");
+            assertNull(reverseLineFileReader.readLine());
         }
     }
 
     @Test
     public void testReadEmptyFile() throws IOException {
         File testFile = createTestingFile();
-        try (ReverseLineReader reverseLineReader = new ReverseLineReader(testFile)) {
-            Assertions.assertNull(reverseLineReader.readLine());
+        try (ReverseLineFileReader reverseLineFileReader = new ReverseLineFileReader(testFile)) {
+            assertNull(reverseLineFileReader.readLine());
         }
     }
 
     @Test
     public void testNotFoundFile() {
         File file = new File(randomString(12) + ".txt");
-        try (ReverseLineReader reverseLineReader = new ReverseLineReader(file)) {
+        try (ReverseLineFileReader reverseLineFileReader = new ReverseLineFileReader(file)) {
         } catch (FileNotFoundException e) {
             // should be thrown here
             return;
@@ -71,18 +72,17 @@ class ReverseLineReaderTest {
         File file = createTestingFile();
         Set<String> fileContent = randomStrings(100, 10);
         writeFile(file, fileContent);
-        ReverseLineReader reverseLineReader = new ReverseLineReader(file);
+        ReverseLineFileReader reverseLineFileReader = new ReverseLineFileReader(file);
 
         List<Callable<List<String>>> tasks =
                 IntStream.range(0, 3)
                         .mapToObj(i -> (Callable<List<String>>) () -> {
-                            List<String> readResult = readAllLineFrom(reverseLineReader);
-                            reverseLineReader.close();
+                            List<String> readResult = readAllLineFrom(reverseLineFileReader);
+                            reverseLineFileReader.close();
                             return readResult;
                         }).collect(toList());
         ExecutorService executorService = Executors.newCachedThreadPool();
         List<Future<List<String>>> futures = executorService.invokeAll(tasks);
-
         Set<String> combinedResult = new HashSet<>();
         for (Future<List<String>> future : futures) {
             try {
@@ -132,10 +132,10 @@ class ReverseLineReaderTest {
         }
     }
 
-    private List<String> readAllLineFrom(ReverseLineReader reverseLineReader) throws IOException {
+    private List<String> readAllLineFrom(ReverseLineFileReader reverseLineFileReader) throws IOException {
         List<String> result = new ArrayList<>();
         String line;
-        while ((line = reverseLineReader.readLine()) != null) {
+        while ((line = reverseLineFileReader.readLine()) != null) {
             result.add(line);
         }
         return result;

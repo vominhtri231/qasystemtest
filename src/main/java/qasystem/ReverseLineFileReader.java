@@ -6,12 +6,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class ReverseLineReader implements Closeable {
+public class ReverseLineFileReader implements Closeable {
     private final RandomAccessFile accessFile;
     private long currentPos;
     private volatile boolean isClosed = false;
 
-    public ReverseLineReader(File file) throws FileNotFoundException {
+    public ReverseLineFileReader(File file) throws FileNotFoundException {
         accessFile = new RandomAccessFile(file, "r");
         currentPos = file.length();
     }
